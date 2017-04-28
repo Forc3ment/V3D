@@ -16,10 +16,10 @@ int main()
   vpImage<unsigned char> Ig(300,400,0);
   vpImage<unsigned char> Id(300,400,0);
   vpImage<vpRGBa> Iimage(876,1200);
-  
- 
-  vpImageIo::read(Iimage,"../data/big-sleep.jpg") ;
-  
+
+
+  vpImageIo::read(Iimage,"../Data/big-sleep.jpg") ;
+
 
   double L = 0.600 ;
   double l = 0.438;
@@ -30,28 +30,28 @@ int main()
   X[0][0] = -L;
   X[0][1] = -l;
   X[0][2] = 0;
-  
+
   // Top right corner
   X[1][0] = L;
   X[1][1] = -l;
   X[1][2] = 0;
-  
+
   // Bottom right corner
   X[2][0] = L;
   X[2][1] = l;
   X[2][2] = 0;
-  
+
   //Bottom left corner
   X[3][0] = -L;
   X[3][1] = l;
   X[3][2] = 0;
-  
+
 
 
   vpImageSimulator sim;
   sim.init(Iimage, X);
   vpCameraParameters cam(800.0, 800.0, 200, 150);
-  
+
 
 
 
@@ -67,15 +67,15 @@ int main()
   cout << gMo << endl ;
 
   // I1d
-  vpHomogeneousMatrix dMo(0.1,0,1.9, 
-			  vpMath::rad(5),vpMath::rad(5),vpMath::rad(5)) ; 
+  vpHomogeneousMatrix dMo(-0.1,0,2,
+			  vpMath::rad(0),vpMath::rad(0),vpMath::rad(0)) ;
 
   sim.setCameraPosition(dMo);
-  sim.getImage(Id,cam);  
+  sim.getImage(Id,cam);
   cout << "Image I1d " <<endl ;
   cout << "dMo " << endl ;
   cout << dMo << endl ;
- 
+
 
   vpDisplayX dg(Ig,10,10,"Ig") ;
   vpDisplay::display(Ig) ;
@@ -85,24 +85,42 @@ int main()
   vpDisplay::display(Id) ;
   vpDisplay::flush(Id) ;
 
-  vpImagePoint pd ; 
+  vpImageIo::write(Ig, "../result/Ig.pgm");
+  vpImageIo::write(Id, "../result/Id.pgm");
+
+  vpImagePoint pd ;
 
   for (int i=0 ; i < 5 ; i++)
     {
       cout << "Click point number " << i << endl ;
       vpDisplay::getClick(Id, pd) ;
-      
-      
+
+
       vpDisplay::displayCross(Id,pd,5,vpColor::red) ;
 
 
       // Calcul du lieu geometrique
-      //....
+      // Basic stereo algorithm
+      unsigned char currentDifference;
+      unsigned char bestDifference = 255;
+      double jD = pd.get_j();
+      double iD = pd.get_i();
+      vpImagePoint pg(iD, 0);
+
+      for(double j = 0; j < Ig.getCols(); j++){
+        std::cout << "J : " << j << std::endl;
+        currentDifference = Ig.getValue(iD, j) - Id.getValue(iD, jD);
+        if(currentDifference <= bestDifference){
+          bestDifference = currentDifference;
+          pg.set_j(j);
+        }
+      }
 
 
       // Affichage dans Ig
-      
+
       //      vpDisplay::displayXXXX(Ig,...) ;
+      vpDisplay::displayCross(Ig,pg,5,vpColor::red) ;
 
       vpDisplay::flush(Id) ;
       vpDisplay::flush(Ig) ;
@@ -114,7 +132,7 @@ int main()
   vpImageIo::write(Icol,"resultat.jpg") ;
   vpImageIo::write(Id,"I1g.jpg") ;
 
-  
+
 
 
   vpDisplay::getClick(Id) ;
@@ -123,7 +141,7 @@ int main()
   vpDisplay::close(Id) ;
   vpDisplay::close(Ig) ;
 
-  
+
 
   return 0;
 }
