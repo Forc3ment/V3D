@@ -88,39 +88,61 @@ int main()
   vpImageIo::write(Ig, "../result/Ig.pgm");
   vpImageIo::write(Id, "../result/Id.pgm");
 
-  vpImagePoint pd ;
+  vpImagePoint pd, p1, p2 ;
+
+  double a, b, c, u1, u2, v1, v2;
+
+  //Calcul de la matrice fondamentale
+  vpMatrix K_inverse = cam.get_K_inverse();
+  vpMatrix K_inverse_transpose = K_inverse.transpose();
+
+  vpHomogeneousMatrix gMd = gMo * dMo.inverse();
+  vpTranslationVector gtd;
+  gMd.extract(gtd);
+  vpMatrix gTdx = gtd.skew();
+  vpRotationMatrix gRd;
+  gMd.extract(gRd);
+
+  vpMatrix gFd = K_inverse_transpose * gTdx * gRd * K_inverse;
 
   for (int i=0 ; i < 5 ; i++)
     {
       cout << "Click point number " << i << endl ;
       vpDisplay::getClick(Id, pd) ;
-
-
       vpDisplay::displayCross(Id,pd,5,vpColor::red) ;
 
 
       // Calcul du lieu geometrique
-      // Basic stereo algorithm
-      unsigned char currentDifference;
-      unsigned char bestDifference = 255;
-      double jD = pd.get_j();
-      double iD = pd.get_i();
-      vpImagePoint pg(iD, 0);
+      vpMatrix xd(3,1);
+      xd[0][0] = pd.get_u();
+      xd[1][0] = pd.get_v();
+      xd[2][0] = 1;
 
-      for(double j = 0; j < Ig.getCols(); j++){
-        std::cout << "J : " << j << std::endl;
-        currentDifference = Ig.getValue(iD, j) - Id.getValue(iD, jD);
-        if(currentDifference <= bestDifference){
-          bestDifference = currentDifference;
-          pg.set_j(j);
-        }
-      }
+      vpMatrix Deg = gFd * xd;
+
+      a = Deg[0][0];
+      b = Deg[1][0];
+      c = Deg[2][0];
+
+      u1 = 0;
+      u2 = 399;
+      std::cout << "V1 : " << v1 << " V2 : " << v2 << std::endl;
+
+      v1 = (-a*u1-c)/b;
+      v2 = (-a*u2-c)/b;
+      std::cout << "V1 : " << v1 << " V2 : " << v2 << std::endl;
+
+      p1.set_u(u1);
+      p1.set_v(v1);
+      p2.set_u(u2);
+      p2.set_v(v2);
+
+      vpDisplay::displayLine(Ig, p1, p2, vpColor::red);
 
 
       // Affichage dans Ig
 
       //      vpDisplay::displayXXXX(Ig,...) ;
-      vpDisplay::displayCross(Ig,pg,5,vpColor::red) ;
 
       vpDisplay::flush(Id) ;
       vpDisplay::flush(Ig) ;
