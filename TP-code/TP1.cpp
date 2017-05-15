@@ -67,8 +67,8 @@ int main()
   cout << gMo << endl ;
 
   // I1d
-  vpHomogeneousMatrix dMo(-0.1,0,2,
-			  vpMath::rad(0),vpMath::rad(0),vpMath::rad(0)) ;
+  vpHomogeneousMatrix dMo(0.1,0,1.9,
+			  vpMath::rad(5),vpMath::rad(5),vpMath::rad(5)) ;
 
   sim.setCameraPosition(dMo);
   sim.getImage(Id,cam);
@@ -88,11 +88,13 @@ int main()
   vpImageIo::write(Ig, "../result/Ig.pgm");
   vpImageIo::write(Id, "../result/Id.pgm");
 
-  vpImagePoint pd, p1, p2 ;
+  vpImagePoint pd, pg, p1, p2 ;
 
   double a, b, c, u1, u2, v1, v2;
 
   //Calcul de la matrice fondamentale
+
+  //De droite vers gauche
   vpMatrix K_inverse = cam.get_K_inverse();
   vpMatrix K_inverse_transpose = K_inverse.transpose();
 
@@ -105,11 +107,27 @@ int main()
 
   vpMatrix gFd = K_inverse_transpose * gTdx * gRd * K_inverse;
 
-  for (int i=0 ; i < 5 ; i++)
+  //De gauche vers droite
+  // vpMatrix K_inverse = cam.get_K_inverse();
+  // vpMatrix K_inverse_transpose = K_inverse.transpose();
+  //
+  // vpHomogeneousMatrix dMg = dMo * gMo.inverse();
+  // vpTranslationVector dtg;
+  // dMg.extract(dtg);
+  // vpMatrix dTgx = dtg.skew();
+  // vpRotationMatrix dRg;
+  // dMg.extract(dRg);
+  //
+  // vpMatrix dFg = K_inverse_transpose * dTgx * dRg * K_inverse;
+
+  for (int i=0 ; i < 10 ; i++)
     {
+      //De droite vers gauche
       cout << "Click point number " << i << endl ;
       vpDisplay::getClick(Id, pd) ;
-      vpDisplay::displayCross(Id,pd,5,vpColor::red) ;
+      pd.set_u(50);
+      pd.set_v(75);
+      vpDisplay::displayCross(Id,pd,8,vpColor::green) ;
 
 
       // Calcul du lieu geometrique
@@ -127,6 +145,7 @@ int main()
       u1 = 0;
       u2 = 399;
       std::cout << "V1 : " << v1 << " V2 : " << v2 << std::endl;
+      std::cout << "a : " << a << " b : " << b << " c : " << c << std::endl;
 
       v1 = (-a*u1-c)/b;
       v2 = (-a*u2-c)/b;
@@ -137,21 +156,56 @@ int main()
       p2.set_u(u2);
       p2.set_v(v2);
 
-      vpDisplay::displayLine(Ig, p1, p2, vpColor::red);
-
-
-      // Affichage dans Ig
-
-      //      vpDisplay::displayXXXX(Ig,...) ;
+      vpDisplay::displayLine(Ig, p1, p2, vpColor::green);
 
       vpDisplay::flush(Id) ;
       vpDisplay::flush(Ig) ;
+
+      //De gauche vers droite
+      // cout << "Click point number " << i << endl ;
+      // vpDisplay::getClick(Ig, pg) ;
+      // vpDisplay::displayCross(Ig,pg,8,vpColor::green) ;
+      //
+      //
+      // // Calcul du lieu geometrique
+      // vpMatrix xg(3,1);
+      // xg[0][0] = pg.get_u();
+      // xg[1][0] = pg.get_v();
+      // xg[2][0] = 1;
+      //
+      // vpMatrix Deg = dFg * xg;
+      //
+      // a = Deg[0][0];
+      // b = Deg[1][0];
+      // c = Deg[2][0];
+      //
+      // u1 = 0;
+      // u2 = 399;
+      // std::cout << "V1 : " << v1 << " V2 : " << v2 << std::endl;
+      // std::cout << "a : " << a << " b : " << b << " c : " << c << std::endl;
+      //
+      // v1 = (-a*u1-c)/b;
+      // v2 = (-a*u2-c)/b;
+      // std::cout << "V1 : " << v1 << " V2 : " << v2 << std::endl;
+      //
+      // p1.set_u(u1);
+      // p1.set_v(v1);
+      // p2.set_u(u2);
+      // p2.set_v(v2);
+      //
+      // vpDisplay::displayLine(Id, p1, p2, vpColor::green);
+      //
+      // vpDisplay::flush(Id) ;
+      // vpDisplay::flush(Ig) ;
     }
 
   // exemple de code pour sauvegarder une image avec les plan overlay
   vpImage<vpRGBa> Icol ;
+  vpImage<vpRGBa> Ig_line ;
   vpDisplay::getImage(Id,Icol) ;
+  vpDisplay::getImage(Ig,Ig_line) ;
   vpImageIo::write(Icol,"resultat.jpg") ;
+  vpImageIo::write(Ig_line,"resultat_line.jpg") ;
   vpImageIo::write(Id,"I1g.jpg") ;
 
 
