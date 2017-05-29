@@ -5,6 +5,7 @@
 #include <visp/vpImageIo.h>
 #include <visp/vpImageSimulator.h>
 #include <visp/vpDisplayX.h>
+#include <visp/vpMeLine.h>
 
 
 using namespace std ;
@@ -52,11 +53,7 @@ int main()
   sim.init(Iimage, X);
   vpCameraParameters cam(800.0, 800.0, 200, 150);
 
-
-
-
   cam.printParameters() ;
-
 
   // I1g
   vpHomogeneousMatrix  gMo(0,0,2,  vpMath::rad(0),vpMath::rad(0),0) ;
@@ -67,9 +64,8 @@ int main()
   cout << gMo << endl ;
 
   // I1d
-  vpHomogeneousMatrix dMo(0.1,0,1.9,
-			  vpMath::rad(5),vpMath::rad(5),vpMath::rad(5)) ;
-
+  vpHomogeneousMatrix dMo(0.1,0,1.9,vpMath::rad(5),vpMath::rad(5),vpMath::rad(5)) ;
+  //vpHomogeneousMatrix dMo(0,0,1.8,vpMath::rad(0),vpMath::rad(0),vpMath::rad(0)) ;
   sim.setCameraPosition(dMo);
   sim.getImage(Id,cam);
   cout << "Image I1d " <<endl ;
@@ -120,15 +116,15 @@ int main()
   //
   // vpMatrix dFg = K_inverse_transpose * dTgx * dRg * K_inverse;
 
+  vpMeLine line1;
+  vpMeLine line2;
+
   for (int i=0 ; i < 10 ; i++)
     {
       //De droite vers gauche
       cout << "Click point number " << i << endl ;
       vpDisplay::getClick(Id, pd) ;
-      pd.set_u(50);
-      pd.set_v(75);
       vpDisplay::displayCross(Id,pd,8,vpColor::green) ;
-
 
       // Calcul du lieu geometrique
       vpMatrix xd(3,1);
@@ -157,6 +153,28 @@ int main()
       p2.set_v(v2);
 
       vpDisplay::displayLine(Ig, p1, p2, vpColor::green);
+
+      vpImagePoint pInter;
+      bool inter;
+      if(i == 0){
+        line1.a = b;
+        line1.b = a;
+        line1.c = c;
+
+        line1.display(Ig,vpColor::red);
+      }
+      if(i == 1){
+        line2.a = b;
+        line2.b = a;
+        line2.c = c;
+
+        line2.display(Ig,vpColor::red);
+
+        inter = vpMeLine::intersection(line1, line2, pInter);
+      }
+
+
+      cout << "inter : " << inter << " u : " << pInter.get_u() << " v: " << pInter.get_v() << endl;
 
       vpDisplay::flush(Id) ;
       vpDisplay::flush(Ig) ;
