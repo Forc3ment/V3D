@@ -374,8 +374,8 @@ std::vector<bool> ransac(const vpImagePoint* p1, const vpImagePoint* p2, vpMatri
     int k = 0;
     for (int i = 0; i < minSize; ++i)
     {
-      temp1[k]=p1[subset[i]];
-      temp2[k]=p2[subset[i]];
+      temp1[i]=p1[subset[i]];
+      temp2[i]=p2[subset[i]];
     }
 
 
